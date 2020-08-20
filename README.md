@@ -1,8 +1,8 @@
 # gob
-Bulk upserts to PostgreSQL, Cassandra and Redis
+Bulk upserts to PostgreSQL, MySQL, Cassandra and Redis
 
 # Goal
-* API to upsert large number of records to PostgreSQL, Cassandra and Redis
+* API to upsert large number of records to PostgreSQL, MySQL, Cassandra and Redis
 
 # Prerequistes
 * GO 1.15 and above
