@@ -1,51 +1,50 @@
 package gob
 
-import (
-	"database/sql"
-	"fmt"
+var (
+	defaultBatchSize = 10000
 )
 
 // Gob provides APIs to upsert data in bulk
 type Gob struct {
-	sqlDB        *sql.DB                // connection handler to Relation Database
-	modelsByName map[string]interface{} // registered models
+	db        // connection handler to database
+	batchSize int
 }
 
-func (gob *Gob) registerModel(name string, model interface{}) error {
-	if model == nil {
-		return fmt.Errorf("nil model; name: %s", name)
+func gob(options ...Option) *Gob {
+	g := &Gob{batchSize: defaultBatchSize}
+
+	for _, option := range options {
+		option(g)
 	}
 
-	gob.modelsByName[name] = model
-	return nil
+	return g
+}
+
+func (gob *Gob) setBatchSize(size int) {
+	gob.batchSize = size
+}
+
+func (gob *Gob) setDB(db db) {
+	gob.db = db
 }
 
 // Option to customize Gob
-type Option func(gob *Gob) error
+type Option func(gob *Gob)
 
-// NewSQL returns Gob handler for relation database - Postgres, MySQL
-//
-// Gob upserts records using db connection
-//
-// options
-func NewSQL(db *sql.DB, options ...Option) (*Gob, error) {
-	gob := &Gob{
-		sqlDB:        db,
-		modelsByName: make(map[string]interface{}),
+// BatchSize sets batchSize of Gob to size
+func BatchSize(size int) Option {
+	return func(gob *Gob) {
+		gob.setBatchSize(size)
 	}
-
-	for _, option := range options {
-		if err := option(gob); err != nil {
-			return nil, err
-		}
-	}
-
-	return gob, nil
 }
 
-// RegisterModel to Gob during initialization
-func RegisterModel(name string, model interface{}) Option {
-	return func(gob *Gob) error {
-		return gob.registerModel(name, model)
-	}
+// Row of model
+type Row map[string]interface{}
+
+type db interface {
+	// Insert rows to model
+	Insert(model string, rows []Row) error
+
+	// Update rows to model
+	Update(model string, rows []Row) error
 }

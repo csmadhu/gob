@@ -1,18 +1,18 @@
 package gob
 
 import (
-	"database/sql"
 	"testing"
 )
 
-func TestNewSQL(t *testing.T) {
-	modelFoo := struct{}{}
-
-	if _, err := NewSQL(&sql.DB{}, RegisterModel("foo", &modelFoo)); err != nil {
-		t.Fatalf("init gob err: %v", err)
+func TestNewGob(t *testing.T) {
+	g := gob()
+	if g.batchSize != defaultBatchSize {
+		t.Fatalf("batchSize got: %d want: %d", g.batchSize, defaultBatchSize)
 	}
 
-	if _, err := NewSQL(&sql.DB{}, RegisterModel("foo", &modelFoo), RegisterModel("bar", nil)); err == nil {
-		t.Fatalf("expected nil model error")
+	batchSize := 10
+	g = gob(BatchSize(batchSize))
+	if g.batchSize != batchSize {
+		t.Fatalf("batchSize got: %d want: %d", g.batchSize, batchSize)
 	}
 }
