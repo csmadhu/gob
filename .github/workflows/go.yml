@@ -1,4 +1,4 @@
-name: Go
+name: Gob
 
 on:
   push:
@@ -51,10 +51,3 @@ jobs:
 
     - name: Run Test
       run: go test -v -race -cover ./...
-
-      # Environment variable used by the go tests
-      env:
-        # The hostname used to communicate with the PostgreSQL service container
-        POSTGRES_HOST: localhost
-        # The default PostgreSQL port
-        POSTGRES_PORT: 5432
