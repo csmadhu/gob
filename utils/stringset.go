@@ -1,5 +1,7 @@
 package utils
 
+import "sort"
+
 // StringSet implements Set interface
 type StringSet map[string]struct{}
 
@@ -72,11 +74,12 @@ func (set StringSet) Union(other StringSet) StringSet {
 	return result
 }
 
-// ToSlice return set of items in slice
+// ToSlice return set of items in sorted order
 func (set StringSet) ToSlice() (items []string) {
 	for item := range set {
 		items = append(items, item)
 	}
 
+	sort.Strings(items)
 	return items
 }

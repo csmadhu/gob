@@ -22,7 +22,7 @@ var (
 var (
 	defaultBatchSize = 10000
 	defaultDBType    = DBTypePg
-	defaultConnStr   = "postgres://postgres:postgres@localhost:5432/gob?pool_max_conns=1"
+	defaultConnStr   = "postgres://postgres:postgres@localhost:5432/postgres?pool_max_conns=1"
 )
 
 // Gob provides APIs to upsert data in bulk

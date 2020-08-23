@@ -15,7 +15,7 @@ import (
 
 var (
 	testPgDB      *pgxpool.Pool
-	testPgConnStr = "postgres://postgres:postgres@localhost:5432/gob?pool_max_conns=1"
+	testPgConnStr = "postgres://postgres:postgres@localhost:5432/postgres?pool_max_conns=1"
 )
 
 func init() {
@@ -100,13 +100,16 @@ func testVerifyFooRowsPg(t *testing.T, rows []Row) {
 			if err := dbRows.Scan(&id, &name, &age, &profile, &subjects); err != nil {
 				t.Fatalf("scan foo row: %d; err: %v", want.Value("id"), err)
 			}
-			got = map[string]interface{}{
-				"id":       id,
-				"name":     name,
-				"age":      age,
-				"profile":  profile,
-				"subjects": subjects,
-			}
+			got = NewRow()
+			got.Add("id", id)
+			got.Add("name", name)
+			got.Add("age", age)
+			got.Add("profile", profile)
+			got.Add("subjects", subjects)
+		}
+
+		if got == nil || got.Len() == 0 {
+			t.Fatalf("row got: empty row want: %v", want)
 		}
 
 		got["birthday"] = want.Value("birthday")
