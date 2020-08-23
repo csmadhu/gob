@@ -28,6 +28,12 @@ func TestStringSet(t *testing.T) {
 		}
 	})
 
+	t.Run("equals", func(t *testing.T) {
+		if set1.Equals(set2) {
+			t.Fatalf("set1 does not equal set2")
+		}
+	})
+
 	t.Run("intersection", func(t *testing.T) {
 		i := set1.Intersetion(set2)
 		if i.Len() != 1 {

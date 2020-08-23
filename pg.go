@@ -5,8 +5,6 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/csmadhu/gob/utils"
-
 	"github.com/jackc/pgx/v4"
 
 	"github.com/jackc/pgx/v4/pgxpool"
@@ -29,9 +27,13 @@ func (db *pg) close() {
 	db.Close()
 }
 
-func (db *pg) upsert(ctx context.Context, table string, keyColumns utils.StringSet, rows []Row) error {
-	if len(rows) == 0 {
+func (db *pg) upsert(ctx context.Context, upsertArgs UpsertArgs) error {
+	if len(upsertArgs.Rows) == 0 {
 		return nil
+	}
+
+	if len(upsertArgs.Keys) == 0 {
+		return ErrEmptykeys
 	}
 
 	// start transaction
@@ -40,11 +42,11 @@ func (db *pg) upsert(ctx context.Context, table string, keyColumns utils.StringS
 		return fmt.Errorf("gob: begin PostgreSQL tx: %w", err)
 	}
 
-	for _, row := range rows {
+	for _, row := range upsertArgs.Rows {
 		if row.Len() == 0 {
 			continue // ignore empty row
 		}
-		sql, args := db.rowToSQL(table, keyColumns, row)
+		sql, args := db.rowToSQL(row, upsertArgs)
 		if _, err := tx.Exec(ctx, sql, args...); err != nil {
 			tx.Rollback(ctx)
 			return fmt.Errorf("gob: execute upsert sql '%s' on PostgreSQL server: %w", sql, err)
@@ -59,31 +61,41 @@ func (db *pg) upsert(ctx context.Context, table string, keyColumns utils.StringS
 	return nil
 }
 
-func (db *pg) rowToSQL(table string, keyColumns utils.StringSet, row Row) (sql string, args []interface{}) {
-	upsertSQL := "INSERT INTO %s(%s) VALUES(%s) ON CONFLICT (%s) DO UPDATE SET %s"
+func (db *pg) rowToSQL(row Row, upsertArgs UpsertArgs) (sql string, args []interface{}) {
+	upsertSQL := "INSERT INTO %s(%s) VALUES(%s) ON CONFLICT (%s) %s"
+
 	var (
 		cols         []string
 		values       []string
 		updateClause []string
+		action       string
 		count        = 1
 	)
 
 	for _, column := range row.Columns() {
 		cols = append(cols, column)
 		values = append(values, fmt.Sprintf("$%d", count))
-		if !keyColumns.Contains(column) {
+		if !upsertArgs.KeySet.Contains(column) {
 			updateClause = append(updateClause, fmt.Sprintf("%s=$%d", column, count))
 		}
 		args = append(args, row.Value(column))
 		count = count + 1
 	}
 
+	switch upsertArgs.ConflictAction {
+	case ConflictActionUpdate:
+		action = fmt.Sprintf("DO UPDATE SET %s", strings.Join(updateClause, ","))
+	default:
+		action = "DO NOTHING"
+	}
+
 	sql = fmt.Sprintf(upsertSQL,
-		table,
+		upsertArgs.Model,
 		strings.Join(cols, ","),
 		strings.Join(values, ","),
-		strings.Join(keyColumns.ToSlice(), ","),
-		strings.Join(updateClause, ","))
+		strings.Join(upsertArgs.Keys, ","),
+		action,
+	)
 
 	return sql, args
 }

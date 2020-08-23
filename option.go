@@ -5,8 +5,8 @@ import "fmt"
 // Option to customize Gob
 type Option func(gob *Gob) error
 
-// BatchSize sets batchSize of Gob to size
-func BatchSize(size int) Option {
+// WithBatchSize sets batchSize of Gob to size
+func WithBatchSize(size int) Option {
 	return func(gob *Gob) error {
 		if size <= 0 {
 			return fmt.Errorf("gob: invalid batchSize: %d", size)
@@ -16,20 +16,20 @@ func BatchSize(size int) Option {
 	}
 }
 
-// DBType sets type of database to upsert rows
-func DBType(dbType string) Option {
+// WithDBProvider sets provider of database to upsert rows
+func WithDBProvider(provider DBProvider) Option {
 	return func(gob *Gob) error {
-		if dbType == "" {
-			return fmt.Errorf("gob: invalid dbType: %s", dbType)
+		if provider == "" {
+			return fmt.Errorf("gob: invalid dbProvider: %s", provider)
 		}
 
-		gob.setDBType(dbType)
+		gob.setDBProvider(provider)
 		return nil
 	}
 }
 
-// DBConnStr sets type of database conn string
-func DBConnStr(connStr string) Option {
+// WithDBConnStr sets type of database conn string
+func WithDBConnStr(connStr string) Option {
 	return func(gob *Gob) error {
 		if connStr == "" {
 			return fmt.Errorf("gob: invalid connStr: %s", connStr)
