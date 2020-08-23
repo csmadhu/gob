@@ -16,7 +16,7 @@ jobs:
       postgres:
         # Docker Hub image
         image: postgres:12.4
-        # Provide the password for postgres
+        # Provide the user, password and database for postgres
         env:
           POSTGRES_PASSWORD: postgres
           POSTGRES_USER: password
@@ -31,6 +31,26 @@ jobs:
         ports:
           # Opens tcp port 5432 on the host and service container
           - 5432:5432
+
+      mysql:
+        # Docker Hub image
+        image: mysql:8.0.21
+        # Provide the user, password and database for mysql
+        env:
+          MYSQL_ROOT_PASSWORD: fY5SGU=t
+          MYSQL_USER: gob
+          MYSQL_PASSWORD: fY5SGU=t
+          MYSQL_DATABASE: gob
+        # Set health checks to wait until mysql has started
+        options: >-
+          --health-cmd "mysqladmin ping -u gob --password='fY5SGU=t'"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+        ports:
+          # Opens tcp port 3306 on the host and service container
+          - 3306:3306
 
     steps:
 
