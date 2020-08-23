@@ -10,7 +10,7 @@ import (
 
 func main() {
 	g, err := gob.New(gob.WithDBProvider(gob.DBProviderPg),
-		gob.WithDBConnStr("postgres://postgres:postgres@localhost:5432/postgres?pool_max_conns=1"))
+		gob.WithDBConnStr("postgres://postgres:postgres@localhost:5432/gob?pool_max_conns=1"))
 	if err != nil {
 		log.Fatalf("init gob; err: %v", err)
 	}

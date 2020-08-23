@@ -19,6 +19,8 @@ jobs:
         # Provide the password for postgres
         env:
           POSTGRES_PASSWORD: postgres
+          POSTGRES_USER: password
+          POSTGRES_DB: gob
         # Set health checks to wait until postgres has started
         options: >-
           --health-cmd pg_isready
@@ -49,8 +51,8 @@ jobs:
             dep ensure
         fi
 
-    - name: Run Test
-      run: go test -v -race -cover ./...
-
     - name: Build
       run: go build ./...
+
+    - name: Run Test
+      run: go test -v -race -cover ./...
