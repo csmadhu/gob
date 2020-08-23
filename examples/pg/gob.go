@@ -8,7 +8,8 @@ import (
 )
 
 func main() {
-	g, err := gob.New(gob.DBType(gob.DBTypePg), gob.DBConnStr("postgres://postgres:postgres@localhost:5432/gob?pool_max_conns=1"))
+	g, err := gob.New(gob.DBType(gob.DBTypePg),
+		gob.DBConnStr("postgres://postgres:postgres@localhost:5432/postgres?pool_max_conns=1"))
 	if err != nil {
 		log.Fatalf("init gob err: %v", err)
 	}
