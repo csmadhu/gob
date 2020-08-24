@@ -74,6 +74,21 @@ func (set StringSet) Union(other StringSet) StringSet {
 	return result
 }
 
+// Equals returns false if other StringSet does not contain exact items
+func (set StringSet) Equals(other StringSet) bool {
+	if set.Len() != other.Len() {
+		return false
+	}
+
+	for item := range set {
+		if !other.Contains(item) {
+			return false
+		}
+	}
+
+	return true
+}
+
 // ToSlice return set of items in sorted order
 func (set StringSet) ToSlice() (items []string) {
 	for item := range set {

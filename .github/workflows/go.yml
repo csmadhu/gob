@@ -51,3 +51,6 @@ jobs:
 
     - name: Run Test
       run: go test -v -race -cover ./...
+
+    - name: Build
+      run: go build ./...

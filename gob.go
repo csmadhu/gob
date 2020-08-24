@@ -17,19 +17,22 @@ var (
 
 	// ErrEmptyModel when Gob.Upsert is called with empty model
 	ErrEmptyModel = errors.New("gob: empty model;")
+
+	// ErrEmptykeys when Gob.Upsert is called with empty keys
+	ErrEmptykeys = errors.New("gob: empty keys;")
 )
 
 var (
-	defaultBatchSize = 10000
-	defaultDBType    = DBTypePg
-	defaultConnStr   = "postgres://postgres:postgres@localhost:5432/postgres?pool_max_conns=1"
+	defaultBatchSize  = 10000
+	defaultDBProvider = DBProviderPg
+	defaultConnStr    = "postgres://postgres:postgres@localhost:5432/postgres?pool_max_conns=1"
 )
 
 // Gob provides APIs to upsert data in bulk
 type Gob struct {
-	batchSize int    // upsert rows in batches
-	dbType    string // type of database
-	connStr   string // database conn string
+	batchSize  int        // upsert rows in batches
+	dbProvider DBProvider // provider of database
+	connStr    string     // database conn string
 
 	db              // connection handler to database
 	dbMu sync.Mutex // mutex to synchornize connection handler
@@ -38,9 +41,9 @@ type Gob struct {
 // New returns Gob instance customized with options
 func New(options ...Option) (*Gob, error) {
 	gob := &Gob{
-		batchSize: defaultBatchSize,
-		dbType:    defaultDBType,
-		connStr:   defaultConnStr,
+		batchSize:  defaultBatchSize,
+		dbProvider: defaultDBProvider,
+		connStr:    defaultConnStr,
 	}
 
 	for _, option := range options {
@@ -50,14 +53,14 @@ func New(options ...Option) (*Gob, error) {
 	}
 
 	var err error
-	switch gob.dbType {
-	case DBTypePg:
+	switch gob.dbProvider {
+	case DBProviderPg:
 		gob.db, err = newPg(gob.connStr)
 		if err != nil {
 			return nil, err
 		}
 	default:
-		return nil, fmt.Errorf("gob: invalid dbType: %s", gob.dbType)
+		return nil, fmt.Errorf("gob: invalid dbProvider: %s", gob.dbProvider)
 	}
 
 	return gob, nil
@@ -67,8 +70,8 @@ func (gob *Gob) setBatchSize(size int) {
 	gob.batchSize = size
 }
 
-func (gob *Gob) setDBType(dbType string) {
-	gob.dbType = dbType
+func (gob *Gob) setDBProvider(dbProvider DBProvider) {
+	gob.dbProvider = dbProvider
 }
 
 func (gob *Gob) setConnStr(connStr string) {
@@ -82,8 +85,7 @@ func (gob *Gob) getDB() db {
 }
 
 // Upsert rows to model
-// keyColumns of model is reuqired to resolve confict during insert
-func (gob *Gob) Upsert(ctx context.Context, model string, keyColumns []string, rows []Row) error {
+func (gob *Gob) Upsert(ctx context.Context, model string, keys []string, conflictAction ConflictAction, rows []Row) error {
 	var gobDB db
 	gobDB = gob.getDB()
 	if gobDB == nil {
@@ -94,23 +96,25 @@ func (gob *Gob) Upsert(ctx context.Context, model string, keyColumns []string, r
 		return ErrEmptyModel
 	}
 
-	if len(keyColumns) == 0 {
-		return fmt.Errorf("gob: empty keyColumns for model: %s", model)
-	}
-
 	var (
 		start = 0
 		end   = gob.batchSize
-		keys  = utils.NewStringSet(keyColumns...)
 		t0    = time.Now()
+		args  UpsertArgs
 	)
+
+	args.ConflictAction = conflictAction
+	args.Model = model
+	args.KeySet = utils.NewStringSet(keys...)
+	args.Keys = args.KeySet.ToSlice()
 
 	if len(rows) <= gob.batchSize {
 		end = len(rows)
 	}
 
 	for start < len(rows) {
-		if err := gob.upsert(ctx, model, keys, rows[start:end]); err != nil {
+		args.Rows = rows[start:end]
+		if err := gob.upsert(ctx, args); err != nil {
 			return err
 		}
 
@@ -121,7 +125,7 @@ func (gob *Gob) Upsert(ctx context.Context, model string, keyColumns []string, r
 		}
 	}
 
-	log.Printf("gob: upsert %d rows to model %s in %v", len(rows), model, time.Since(t0))
+	log.Printf("gob: upsert %d rows to model '%s' in %v", len(rows), model, time.Since(t0))
 	return nil
 }
 

@@ -40,17 +40,39 @@ func (row Row) Len() int {
 	return len(row)
 }
 
+// ConflictAction specifies alternatives ON CONFLICT
+type ConflictAction string
+
+const (
+	// ConflictActionNothing ignores conflict during INSERT
+	ConflictActionNothing ConflictAction = "nothing"
+	// ConflictActionUpdate resloves conflict by updating the row
+	ConflictActionUpdate ConflictAction = "update"
+)
+
+// UpsertArgs to upsert rows
+type UpsertArgs struct {
+	ConflictAction                 // ON CONFLICT action
+	Keys           []string        // indicate index column names
+	KeySet         utils.StringSet // keys converted to set
+	Model          string          // table name
+	Rows           []Row           // rows to be upserted
+}
+
 type db interface {
 	// upsert rows to model with keys
-	upsert(ctx context.Context, model string, keys utils.StringSet, rows []Row) error
+	upsert(ctx context.Context, args UpsertArgs) error
 
 	// close the resources
 	close()
 }
 
+// DBProvider for storage
+type DBProvider string
+
 const (
-	// DBTypePg indicates relational database PostgreSQL server
-	DBTypePg = "pg"
-	// DBTypeMySQL indicates relational database MySQL server
-	DBTypeMySQL = "mysql"
+	// DBProviderPg indicates relational database prvoided by PostgreSQL
+	DBProviderPg DBProvider = "pg"
+	// DBProviderMySQL indicates relational database provided by MySQL
+	DBProviderMySQL DBProvider = "mysql"
 )

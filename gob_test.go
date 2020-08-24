@@ -14,9 +14,9 @@ func TestNewGob(t *testing.T) {
 		}
 
 		want := &Gob{
-			batchSize: defaultBatchSize,
-			dbType:    defaultDBType,
-			connStr:   defaultConnStr,
+			batchSize:  defaultBatchSize,
+			dbProvider: DBProviderPg,
+			connStr:    defaultConnStr,
 		}
 
 		testVerifyGob(t, got, want)
@@ -24,12 +24,12 @@ func TestNewGob(t *testing.T) {
 
 	t.Run("customizedGob", func(t *testing.T) {
 		want := &Gob{
-			batchSize: 10,
-			dbType:    DBTypePg,
-			connStr:   defaultConnStr,
+			batchSize:  10,
+			dbProvider: DBProviderPg,
+			connStr:    defaultConnStr,
 		}
 
-		got, err := New(BatchSize(10), DBType(DBTypePg), DBConnStr(defaultConnStr))
+		got, err := New(WithBatchSize(10), WithDBProvider(DBProviderPg), WithDBConnStr(defaultConnStr))
 		if err != nil {
 			t.Fatalf("init gob; err: %v", err)
 		}
@@ -38,23 +38,23 @@ func TestNewGob(t *testing.T) {
 	})
 
 	t.Run("invalidGob", func(t *testing.T) {
-		if _, err := New(BatchSize(-1)); err == nil {
+		if _, err := New(WithBatchSize(-1)); err == nil {
 			t.Fatalf("init gob; want err")
 		}
 
-		if _, err := New(DBType("")); err == nil {
+		if _, err := New(WithDBProvider("")); err == nil {
 			t.Fatalf("init gob; want err")
 		}
 
-		if _, err := New(DBType("test")); err == nil {
+		if _, err := New(WithDBProvider("test")); err == nil {
 			t.Fatalf("init gob; want err")
 		}
 
-		if _, err := New(DBConnStr("")); err == nil {
+		if _, err := New(WithDBConnStr("")); err == nil {
 			t.Fatalf("init gob; want err")
 		}
 
-		if _, err := New(DBConnStr("postgres://postgres:postgres@localhost:5432/gob&pool_max_conns=1")); err == nil {
+		if _, err := New(WithDBConnStr("postgres://postgres:postgres@localhost:5432/gob&pool_max_conns=1")); err == nil {
 			t.Fatalf("init gob; want err")
 		}
 	})
@@ -74,8 +74,8 @@ func testVerifyGob(t *testing.T, got, want *Gob) {
 		t.Fatalf("batchSize got: %d want: %d", got.batchSize, want.batchSize)
 	}
 
-	if got.dbType != want.dbType {
-		t.Fatalf("dbType got: %s want: %s", got.dbType, want.dbType)
+	if got.dbProvider != want.dbProvider {
+		t.Fatalf("dbProvider got: %s want: %s", got.dbProvider, want.dbProvider)
 	}
 
 	if got.connStr != want.connStr {
@@ -95,7 +95,7 @@ func TestGobUpsert(t *testing.T) {
 		}
 
 		gob.Close()
-		if err := gob.Upsert(context.Background(), "foo", []string{"id"}, nil); !errors.Is(err, ErrConnClosed) {
+		if err := gob.Upsert(context.Background(), "students", []string{"name"}, ConflictActionUpdate, nil); !errors.Is(err, ErrConnClosed) {
 			t.Fatalf("error got: %v want: %v", err, ErrConnClosed)
 		}
 	})
@@ -106,64 +106,53 @@ func TestGobUpsert(t *testing.T) {
 			t.Fatalf("init default gob; err: %v", err)
 		}
 
-		if err := gob.Upsert(context.Background(), "", []string{"id"}, nil); !errors.Is(err, ErrEmptyModel) {
+		if err := gob.Upsert(context.Background(), "", []string{"name"}, ConflictActionUpdate, nil); !errors.Is(err, ErrEmptyModel) {
 			t.Fatalf("error got: %v want: %v", err, ErrEmptyModel)
-		}
-	})
-
-	t.Run("emptyKeys", func(t *testing.T) {
-		gob, err := New()
-		if err != nil {
-			t.Fatalf("init default gob; err: %v", err)
-		}
-
-		if err := gob.Upsert(context.Background(), "foo", nil, nil); err == nil {
-			t.Fatalf("want error on empty keyColumns")
 		}
 	})
 
 	t.Run("rowCountLessThanBatchsize", func(t *testing.T) {
 		setupPgDB()
-		gob, err := New(BatchSize(10))
+		gob, err := New(WithBatchSize(10))
 		if err != nil {
 			t.Fatalf("init default gob; err: %v", err)
 		}
 
-		rows := testGenFooRows(1)
-		if err := gob.Upsert(context.Background(), "foo", []string{"id"}, rows); err != nil {
+		rows := testGenStudentRows(1)
+		if err := gob.Upsert(context.Background(), "students", []string{"name"}, ConflictActionUpdate, rows); err != nil {
 			t.Fatalf("upsert rows err: %v", err)
 		}
 
-		testVerifyFooRowsPg(t, rows)
+		testVerifyStudentRowsPg(t, rows)
 	})
 
 	t.Run("rowCountEqToBatchsize", func(t *testing.T) {
 		setupPgDB()
-		gob, err := New(BatchSize(10))
+		gob, err := New(WithBatchSize(10))
 		if err != nil {
 			t.Fatalf("init default gob; err: %v", err)
 		}
 
-		rows := testGenFooRows(10)
-		if err := gob.Upsert(context.Background(), "foo", []string{"id"}, rows); err != nil {
+		rows := testGenStudentRows(10)
+		if err := gob.Upsert(context.Background(), "students", []string{"name"}, ConflictActionUpdate, rows); err != nil {
 			t.Fatalf("upsert rows err: %v", err)
 		}
 
-		testVerifyFooRowsPg(t, rows)
+		testVerifyStudentRowsPg(t, rows)
 	})
 
 	t.Run("rowCountGtThanBatchsize", func(t *testing.T) {
 		setupPgDB()
-		gob, err := New(BatchSize(10))
+		gob, err := New(WithBatchSize(10))
 		if err != nil {
 			t.Fatalf("init default gob; err: %v", err)
 		}
 
-		rows := testGenFooRows(15)
-		if err := gob.Upsert(context.Background(), "foo", []string{"id"}, rows); err != nil {
+		rows := testGenStudentRows(15)
+		if err := gob.Upsert(context.Background(), "students", []string{"name"}, ConflictActionUpdate, rows); err != nil {
 			t.Fatalf("upsert rows err: %v", err)
 		}
 
-		testVerifyFooRowsPg(t, rows)
+		testVerifyStudentRowsPg(t, rows)
 	})
 }
