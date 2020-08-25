@@ -11,6 +11,8 @@ import (
 	"github.com/csmadhu/gob/utils"
 )
 
+// mysql password fY5SGU=t
+
 var (
 	// ErrConnClosed when Gob.Upsert is called after closing the connection
 	ErrConnClosed = errors.New("gob: conn closed;")
@@ -25,7 +27,7 @@ var (
 var (
 	defaultBatchSize  = 10000
 	defaultDBProvider = DBProviderPg
-	defaultConnStr    = "postgres://postgres:postgres@localhost:5432/postgres?pool_max_conns=1"
+	defaultConnStr    = "postgres://postgres:postgres@localhost:5432/gob?pool_max_conns=1"
 )
 
 // Gob provides APIs to upsert data in bulk

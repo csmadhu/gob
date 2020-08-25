@@ -10,13 +10,12 @@ import (
 	"time"
 
 	"github.com/csmadhu/gob/utils"
-
 	"github.com/jackc/pgx/v4/pgxpool"
 )
 
 var (
 	testPgDB      *pgxpool.Pool
-	testPgConnStr = "postgres://postgres:postgres@localhost:5432/postgres?pool_max_conns=1"
+	testPgConnStr = "postgres://postgres:postgres@localhost:5432/gob?pool_max_conns=1"
 )
 
 func init() {
