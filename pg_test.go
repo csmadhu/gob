@@ -139,8 +139,8 @@ func TestRowToSQLPg(t *testing.T) {
 	}
 
 	wantArgs := [][]interface{}{
-		[]interface{}{0, nil, "name-0", studentProfile{Street: "street-0", State: "state-0"}, []string{"english", "calculus"}},
-		[]interface{}{0, nil, "name-0", studentProfile{Street: "street-0", State: "state-0"}, []string{"english", "calculus"}},
+		{0, nil, "name-0", studentProfile{Street: "street-0", State: "state-0"}, []string{"english", "calculus"}},
+		{0, nil, "name-0", studentProfile{Street: "street-0", State: "state-0"}, []string{"english", "calculus"}},
 	}
 
 	pg := &pg{}

@@ -139,8 +139,8 @@ func TestRowToSQLMySQL(t *testing.T) {
 	}
 
 	wantArgs := [][]interface{}{
-		[]interface{}{0, nil, "name-0", `{"state": "state-0", "street": "street-0", "zipcode": 0}`, `["english", "calculus"]`, 0, nil, "name-0", `{"state": "state-0", "street": "street-0", "zipcode": 0}`, `["english", "calculus"]`},
-		[]interface{}{0, nil, "name-0", `{"state": "state-0", "street": "street-0", "zipcode": 0}`, `["english", "calculus"]`},
+		{0, nil, "name-0", `{"state": "state-0", "street": "street-0", "zipcode": 0}`, `["english", "calculus"]`, 0, nil, "name-0", `{"state": "state-0", "street": "street-0", "zipcode": 0}`, `["english", "calculus"]`},
+		{0, nil, "name-0", `{"state": "state-0", "street": "street-0", "zipcode": 0}`, `["english", "calculus"]`},
 	}
 
 	m := &mysql{}
