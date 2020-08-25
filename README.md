@@ -1,14 +1,30 @@
 # gob
 Bulk upserts to PostgreSQL, MySQL, Cassandra and Redis
+<p align="left">
+	<a href="https://goreportcard.com/report/github.com/csmadhu/gob"><img src="https://goreportcard.com/badge/github.com/csmadhu/gob"/></a>
+	<a href="https://pkg.go.dev/github.com/csmadhu/gob/v1?tab=doc"><img src="https://godoc.org/github.com/csmadhu/gob?status.svg"/></a>
+	<a href="/LICENSE"><img src="https://img.shields.io/badge/license-GPL%20(%3E%3D%202)-blue" alt="license"/></a>
+</p>
 
-# Goal
-* API to upsert large number of records to PostgreSQL, MySQL, Cassandra and Redis
+---------------------------------------
+  * [Requirements](#requirements)
+  * [Installation](#installation)
+  * [Usage](#usage)
+  * [Options](#options)
+  * [Examples](#examples)
 
-# Prerequistes
+---------------------------------------
+
+## Requirements
 * GO 1.15 and above
 
-# Usage
+## Installation
+```bash
+go get -u github.com/csmadhu/gob
 ```
+
+# Usage
+```go
 package main
 
 import (
@@ -40,3 +56,19 @@ func main() {
 	}
 }
 ```
+
+## Options
+All options are optional. Options not applicable to Database provider is ignored.
+
+| option | description | type | default |
+|-------------|-------------|-------|-------|
+| **WithBatchSize** | Transaction Batch Size | int | 10000 |
+| **WithDBProvider** | Database provider | gob.DBProvider | DBProviderPg |
+| **WithDBConnStr** | DB URL/DSN - depends on Database provider | string | postgres://postgres:postgres@localhost:5432/gob?pool_max_conns=1 |
+| **WithConnIdleTime**  | Maximum amount of time conn may be idle | time.Duration | 3 second |
+| **WithConnLifeTime**  | Maximum amount of time conn may be reused | time.Duration | 3 second |
+| **WithIdleConns** | Maximum number of connections idle in pool | int | 2 |
+| **WithOpenConns** | Maximum number of connections open to database | int | 10 |
+
+## Examples
+Examples for supported Database provider can be found [here](https://github.com/csmadhu/gob/tree/master/examples)
