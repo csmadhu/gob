@@ -2,7 +2,7 @@
 Bulk upserts to PostgreSQL, MySQL, Cassandra and Redis
 <p align="left">
 	<a href="https://goreportcard.com/report/github.com/csmadhu/gob"><img src="https://goreportcard.com/badge/github.com/csmadhu/gob"/></a>
-	<a href="https://pkg.go.dev/github.com/csmadhu/gob/v1?tab=doc"><img src="https://godoc.org/github.com/csmadhu/gob?status.svg"/></a>
+	<a href="https://pkg.go.dev/github.com/csmadhu/gob?tab=doc"><img src="https://godoc.org/github.com/csmadhu/gob?status.svg"/></a>
 	<a href="/LICENSE"><img src="https://img.shields.io/badge/license-GPL%20(%3E%3D%202)-blue" alt="license"/></a>
 </p>
 
