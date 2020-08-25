@@ -2,20 +2,25 @@ package gob
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"log"
 	"reflect"
 	"testing"
 	"time"
 
-	"github.com/csmadhu/gob/utils"
 	"github.com/jackc/pgx/v4/pgxpool"
 )
 
 var (
 	testPgDB      *pgxpool.Pool
 	testPgConnStr = "postgres://postgres:postgres@localhost:5432/gob?pool_max_conns=1"
+	testPgArgs    = connArgs{
+		connStr:      testPgConnStr,
+		idleConns:    1,
+		openConns:    1,
+		connIdleTime: 3 * time.Second,
+		connLifeTime: 3 * time.Second,
+	}
 )
 
 func init() {
@@ -50,22 +55,7 @@ func setupPgDB() error {
 	return nil
 }
 
-type student struct {
-	ID       int            `json:"id"`
-	Name     string         `json:"name"`
-	Age      int            `json:"age"`
-	Profile  studentProfile `json:"profile"`
-	Subjects []string       `json:"subjects"`
-	Birthday time.Time      `json:"birthday"`
-}
-
-type studentProfile struct {
-	Street  string `json:"street"`
-	State   string `json:"state"`
-	ZipCode int    `json:"zipcode"`
-}
-
-func testGenStudentRows(count int) (rows []Row) {
+func testGenStudentRowsPg(count int) (rows []Row) {
 	for i := 0; i < count; i++ {
 		row := NewRow()
 		row.Add("name", fmt.Sprintf("name-%d", i))
@@ -123,9 +113,9 @@ func testVerifyStudentRowsPg(t *testing.T, rows []Row) {
 }
 
 func TestNewPG(t *testing.T) {
-	db, err := newPg(testPgConnStr)
+	db, err := newPg(testPgArgs)
 	if err != nil {
-		t.Fatalf("init PostgreSQL server err: %v", err)
+		t.Fatalf("init PostgreSQL server; err: %v", err)
 	}
 
 	db.close()
@@ -133,112 +123,26 @@ func TestNewPG(t *testing.T) {
 
 func TestUpsertPg(t *testing.T) {
 	setupPgDB()
-	db, err := newPg(testPgConnStr)
+	db, err := newPg(testPgArgs)
 	if err != nil {
 		t.Fatalf("init PostgreSQL server err: %v", err)
 	}
 	defer db.close()
 
-	t.Run("zeroRows", func(t *testing.T) {
-		if err := db.upsert(context.Background(), UpsertArgs{
-			Model:  "students",
-			KeySet: utils.NewStringSet("name"),
-			Keys:   []string{"name"},
-		}); err != nil {
-			t.Fatalf("upsert zero rows err: %v", err)
-		}
-	})
-
-	t.Run("emptyKeys", func(t *testing.T) {
-		if err := db.upsert(context.Background(), UpsertArgs{
-			Model: "students",
-			Rows:  testGenStudentRows(10),
-		}); !errors.Is(err, ErrEmptykeys) {
-			t.Fatalf("emptyKeys got: %v want: %v", err, ErrEmptykeys)
-		}
-	})
-
-	t.Run("conflictActionNothing", func(t *testing.T) {
-		rows := testGenStudentRows(10)
-		if err := db.upsert(context.Background(), UpsertArgs{
-			ConflictAction: ConflictActionNothing,
-			Model:          "students",
-			KeySet:         utils.NewStringSet("name"),
-			Keys:           []string{"name"},
-			Rows:           rows,
-		}); err != nil {
-			t.Fatalf("insert rows err: %v", err)
-		}
-
-		testVerifyStudentRowsPg(t, rows)
-	})
-
-	t.Run("conflictActionUpdate", func(t *testing.T) {
-		rows := testGenStudentRows(15)
-		if err := db.upsert(context.Background(), UpsertArgs{
-			ConflictAction: ConflictActionNothing,
-			Model:          "students",
-			KeySet:         utils.NewStringSet("name"),
-			Keys:           []string{"name"},
-			Rows:           rows,
-		}); err != nil {
-			t.Fatalf("insert rows err: %v", err)
-		}
-
-		testVerifyStudentRowsPg(t, rows)
-	})
-
+	testUpsertDB(t, db, testGenStudentRowsPg, testVerifyStudentRowsPg)
 }
 
 func TestRowToSQLPg(t *testing.T) {
-	t.Run("conflictActionUpdate", func(t *testing.T) {
-		wantSQL := "INSERT INTO students(age,birthday,name,profile,subjects) VALUES($1,$2,$3,$4,$5) ON CONFLICT (name) DO UPDATE SET age=$1,birthday=$2,profile=$4,subjects=$5"
-		wantArgs := []interface{}{0, nil, "name-0", studentProfile{Street: "street-0", State: "state-0"}, []string{"english", "calculus"}}
+	wantSQLs := []string{
+		"INSERT INTO students(age,birthday,name,profile,subjects) VALUES($1,$2,$3,$4,$5) ON CONFLICT (name) DO UPDATE SET age=$1,birthday=$2,profile=$4,subjects=$5",
+		"INSERT INTO students(age,birthday,name,profile,subjects) VALUES($1,$2,$3,$4,$5) ON CONFLICT (name) DO NOTHING",
+	}
 
-		pg := &pg{}
-		row := testGenStudentRows(1)[0]
+	wantArgs := [][]interface{}{
+		[]interface{}{0, nil, "name-0", studentProfile{Street: "street-0", State: "state-0"}, []string{"english", "calculus"}},
+		[]interface{}{0, nil, "name-0", studentProfile{Street: "street-0", State: "state-0"}, []string{"english", "calculus"}},
+	}
 
-		gotSQL, gotArgs := pg.rowToSQL(row, UpsertArgs{
-			ConflictAction: ConflictActionUpdate,
-			Model:          "students",
-			Keys:           []string{"name"},
-			KeySet:         utils.NewStringSet("name"),
-		})
-
-		if gotSQL != wantSQL {
-			t.Fatalf("sql got: %s want: %s", gotSQL, wantSQL)
-		}
-
-		wantArgs[1] = gotArgs[1]
-
-		if !reflect.DeepEqual(gotArgs, wantArgs) {
-			t.Fatalf("args got: %v want: %v", gotArgs, wantArgs)
-		}
-	})
-
-	t.Run("conflictActionNothing", func(t *testing.T) {
-		wantSQL := "INSERT INTO students(age,birthday,name,profile,subjects) VALUES($1,$2,$3,$4,$5) ON CONFLICT (name) DO NOTHING"
-		wantArgs := []interface{}{0, nil, "name-0", studentProfile{Street: "street-0", State: "state-0"}, []string{"english", "calculus"}}
-
-		pg := &pg{}
-		row := testGenStudentRows(1)[0]
-
-		gotSQL, gotArgs := pg.rowToSQL(row, UpsertArgs{
-			ConflictAction: ConflictActionNothing,
-			Model:          "students",
-			Keys:           []string{"name"},
-			KeySet:         utils.NewStringSet("name"),
-		})
-
-		if gotSQL != wantSQL {
-			t.Fatalf("sql got: %s want: %s", gotSQL, wantSQL)
-		}
-
-		wantArgs[1] = gotArgs[1]
-
-		if !reflect.DeepEqual(gotArgs, wantArgs) {
-			t.Fatalf("args got: %v want: %v", gotArgs, wantArgs)
-		}
-	})
-
+	pg := &pg{}
+	testRowToSQL(t, testGenStudentRowsPg, pg.rowToSQL, wantSQLs, wantArgs)
 }

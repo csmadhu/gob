@@ -3,6 +3,7 @@ package gob
 import (
 	"context"
 	"sort"
+	"time"
 
 	"github.com/csmadhu/gob/utils"
 )
@@ -54,7 +55,7 @@ const (
 type UpsertArgs struct {
 	ConflictAction                 // ON CONFLICT action
 	Keys           []string        // indicate index column names
-	KeySet         utils.StringSet // keys converted to set
+	keySet         utils.StringSet // keys converted to set
 	Model          string          // table name
 	Rows           []Row           // rows to be upserted
 }
@@ -76,3 +77,11 @@ const (
 	// DBProviderMySQL indicates relational database provided by MySQL
 	DBProviderMySQL DBProvider = "mysql"
 )
+
+type connArgs struct {
+	connStr      string
+	idleConns    int
+	openConns    int
+	connIdleTime time.Duration
+	connLifeTime time.Duration
+}
