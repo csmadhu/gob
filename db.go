@@ -47,7 +47,7 @@ type ConflictAction string
 const (
 	// ConflictActionNothing ignores conflict during INSERT
 	ConflictActionNothing ConflictAction = "nothing"
-	// ConflictActionUpdate resloves conflict by updating the row
+	// ConflictActionUpdate resolves conflict by updating the row
 	ConflictActionUpdate ConflictAction = "update"
 )
 

@@ -15,7 +15,7 @@ func NewStringSet(items ...string) StringSet {
 	return set
 }
 
-// Contains return true if set contians item
+// Contains return true if set contains item
 func (set StringSet) Contains(item string) bool {
 	_, ok := set[item]
 	return ok
