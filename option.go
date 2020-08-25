@@ -1,6 +1,9 @@
 package gob
 
-import "fmt"
+import (
+	"fmt"
+	"time"
+)
 
 // Option to customize Gob
 type Option func(gob *Gob) error
@@ -28,13 +31,45 @@ func WithDBProvider(provider DBProvider) Option {
 	}
 }
 
-// WithDBConnStr sets type of database conn string
+// WithDBConnStr sets database conn string
 func WithDBConnStr(connStr string) Option {
 	return func(gob *Gob) error {
 		if connStr == "" {
 			return fmt.Errorf("gob: invalid connStr: %s", connStr)
 		}
 		gob.setConnStr(connStr)
+		return nil
+	}
+}
+
+// WithConnIdleTime sets maximum amount of time conn may be idle
+func WithConnIdleTime(d time.Duration) Option {
+	return func(gob *Gob) error {
+		gob.setConnIdleTime(d)
+		return nil
+	}
+}
+
+// WithConnLifeTime sets maximum amount of time conn may be reused
+func WithConnLifeTime(d time.Duration) Option {
+	return func(gob *Gob) error {
+		gob.setConnLifeTime(d)
+		return nil
+	}
+}
+
+// WithIdleConns sets maximum number of connections idle in pool
+func WithIdleConns(n int) Option {
+	return func(gob *Gob) error {
+		gob.setIdleConns(n)
+		return nil
+	}
+}
+
+// WithOpenConns sets maximum number of connections open to database
+func WithOpenConns(n int) Option {
+	return func(gob *Gob) error {
+		gob.setOpenConns(n)
 		return nil
 	}
 }

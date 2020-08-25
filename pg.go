@@ -13,8 +13,18 @@ type pg struct {
 	*pgxpool.Pool
 }
 
-func newPg(connStr string) (db, error) {
-	pool, err := pgxpool.Connect(context.Background(), connStr)
+func newPg(args connArgs) (db, error) {
+	config, err := pgxpool.ParseConfig(args.connStr)
+	if err != nil {
+		return nil, fmt.Errorf("gob: parseConfig: %w", err)
+	}
+
+	config.MaxConnIdleTime = args.connIdleTime
+	config.MaxConnLifetime = args.connLifeTime
+	config.MinConns = int32(args.idleConns)
+	config.MaxConns = int32(args.openConns)
+
+	pool, err := pgxpool.ConnectConfig(context.Background(), config)
 	if err != nil {
 		return nil, fmt.Errorf("gob: connect to PostgreSQL server: %w", err)
 	}
@@ -47,7 +57,9 @@ func (db *pg) upsert(ctx context.Context, upsertArgs UpsertArgs) error {
 		}
 		sql, args := db.rowToSQL(row, upsertArgs)
 		if _, err := tx.Exec(ctx, sql, args...); err != nil {
-			tx.Rollback(ctx)
+			if rollbackErr := tx.Rollback(ctx); rollbackErr != nil {
+				return fmt.Errorf("gob: execute upsert sql '%s' on PostgreSQL server: %v rollback tx: %w", sql, err, rollbackErr)
+			}
 			return fmt.Errorf("gob: execute upsert sql '%s' on PostgreSQL server: %w", sql, err)
 		}
 	}
@@ -74,7 +86,7 @@ func (db *pg) rowToSQL(row Row, upsertArgs UpsertArgs) (sql string, args []inter
 	for _, column := range row.Columns() {
 		cols = append(cols, column)
 		values = append(values, fmt.Sprintf("$%d", count))
-		if !upsertArgs.KeySet.Contains(column) {
+		if !upsertArgs.keySet.Contains(column) {
 			updateClause = append(updateClause, fmt.Sprintf("%s=$%d", column, count))
 		}
 		args = append(args, row.Value(column))
