@@ -28,7 +28,6 @@ func main() {
 
 	if err := g.Upsert(context.Background(), gob.UpsertArgs{
 		Model:          "students",
-		Keys:           []string{"name"},
 		ConflictAction: gob.ConflictActionUpdate,
 		Rows:           rows}); err != nil {
 		log.Fatalf("upsert students; err: %v", err)

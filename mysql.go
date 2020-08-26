@@ -42,10 +42,6 @@ func (db *mysql) close() {
 }
 
 func (db *mysql) upsert(ctx context.Context, upsertArgs UpsertArgs) error {
-	if len(upsertArgs.Keys) == 0 {
-		return ErrEmptykeys
-	}
-
 	// start transaction
 	tx, err := db.BeginTx(ctx, &sql.TxOptions{Isolation: sql.LevelSerializable})
 	if err != nil {

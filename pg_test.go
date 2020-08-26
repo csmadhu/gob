@@ -2,6 +2,7 @@ package gob
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log"
 	"reflect"
@@ -128,6 +129,15 @@ func TestUpsertPg(t *testing.T) {
 		t.Fatalf("init PostgreSQL server err: %v", err)
 	}
 	defer db.close()
+
+	t.Run("emptyKeys", func(t *testing.T) {
+		if err := db.upsert(context.Background(), UpsertArgs{
+			Model: "students",
+			Rows:  testGenStudentRowsPg(10),
+		}); !errors.Is(err, ErrEmptykeys) {
+			t.Fatalf("emptyKeys got: %v want: %v", err, ErrEmptykeys)
+		}
+	})
 
 	testUpsertDB(t, db, testGenStudentRowsPg, testVerifyStudentRowsPg)
 }
