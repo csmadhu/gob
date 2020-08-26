@@ -35,13 +35,20 @@ func TestNewGob(t *testing.T) {
 			batchSize:    10,
 			dbProvider:   DBProviderPg,
 			connStr:      defaultConnStr,
-			idleConns:    defaultIdleConns,
-			openConns:    defaultOpenConns,
-			connIdleTime: defaultConnIdleTime,
-			connLifeTime: defaultconnLifeTime,
+			idleConns:    1,
+			openConns:    1,
+			connIdleTime: 5 * time.Second,
+			connLifeTime: 10 * time.Second,
 		}
 
-		got, err := New(WithBatchSize(10), WithDBProvider(DBProviderPg), WithDBConnStr(defaultConnStr))
+		got, err := New(WithBatchSize(10),
+			WithDBProvider(DBProviderPg),
+			WithDBConnStr(defaultConnStr),
+			WithIdleConns(1),
+			WithOpenConns(1),
+			WithConnIdleTime(5*time.Second),
+			WithConnLifeTime(10*time.Second),
+		)
 		if err != nil {
 			t.Fatalf("init gob; err: %v", err)
 		}
@@ -67,6 +74,18 @@ func TestNewGob(t *testing.T) {
 		}
 
 		if _, err := New(WithDBConnStr("postgres://postgres:postgres@localhost:5432/gob&pool_max_conns=1")); err == nil {
+			t.Fatalf("init gob; want err")
+		}
+	})
+
+	t.Run("mysqlProvider", func(t *testing.T) {
+		if _, err := New(WithDBProvider(DBProviderMySQL),
+			WithDBConnStr(testMySQLConnStr)); err != nil {
+			t.Fatalf("init gob; err: %v", err)
+		}
+
+		if _, err := New(WithDBProvider(DBProviderMySQL),
+			WithDBConnStr("invalid")); err == nil {
 			t.Fatalf("init gob; want err")
 		}
 	})
@@ -234,15 +253,6 @@ func testUpsertDB(t *testing.T, dbConn db, genFn func(int) []Row, verifyFn func(
 			Keys:   []string{"name"},
 		}); err != nil {
 			t.Fatalf("upsert zero rows err: %v", err)
-		}
-	})
-
-	t.Run("emptyKeys", func(t *testing.T) {
-		if err := dbConn.upsert(context.Background(), UpsertArgs{
-			Model: "students",
-			Rows:  genFn(10),
-		}); !errors.Is(err, ErrEmptykeys) {
-			t.Fatalf("emptyKeys got: %v want: %v", err, ErrEmptykeys)
 		}
 	})
 
