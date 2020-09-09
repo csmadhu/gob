@@ -3,6 +3,8 @@ Bulk upserts to PostgreSQL, MySQL, Cassandra
 <p align="left">
 	<a href="https://goreportcard.com/report/github.com/csmadhu/gob"><img src="https://goreportcard.com/badge/github.com/csmadhu/gob"/></a>
 	<a href="https://pkg.go.dev/github.com/csmadhu/gob?tab=doc"><img src="https://godoc.org/github.com/csmadhu/gob?status.svg"/></a>
+	<a href="https://conventionalcommits.org"><img src="https://img.shields.io/badge/Conventional%20Commits-1.0.0-yellow.svg"/></a>
+	<a href="/.github/workflows/go.yml"><img src="https://github.com/csmadhu/gob/workflows/Go/badge.svg"/></a>
 	<a href="/LICENSE"><img src="https://img.shields.io/badge/license-GPL%20(%3E%3D%202)-blue" alt="license"/></a>
 </p>
 
