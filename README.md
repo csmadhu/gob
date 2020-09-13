@@ -104,7 +104,7 @@ All options are optional. Options not applicable to Database provider is ignored
 				<li>PostgreSQL <b>postgres://username:password@host:port/batabase</b><br>
 					References
 						<ul>
-							<li>https://pkg.go.dev/github.com/jackc/pgconn\?tab=doc#ParseConfig</li>
+							<li>https://pkg.go.dev/github.com/jackc/pgconn?tab=doc#ParseConfig</li>
 							<li>https://pkg.go.dev/github.com/jackc/pgx/v4?tab=doc#ParseConfig</li>
 						</ul>
 				</li>
