@@ -57,7 +57,7 @@ jobs:
         image: cassandra:3.11.8
         # Set health checks to wait until mysql has started
         options: >-
-          --health-cmd "[ $$(nodetool statusgossip) = running ]"
+          --health-cmd "cqlsh -e 'describe keyspaces'"
           --health-interval 30s
           --health-timeout 10s
           --health-retries 5
