@@ -15,7 +15,6 @@ Bulk upserts to PostgreSQL, MySQL, Cassandra
   * [Usage](#usage)
   * [Options](#options)
   * [Examples](#examples)
-
 ---------------------------------------
 
 ## Requirements
