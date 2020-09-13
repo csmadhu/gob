@@ -1,5 +1,6 @@
 # gob
 Bulk upserts to PostgreSQL, MySQL, Cassandra
+
 <p align="left">
 	<a href="https://goreportcard.com/report/github.com/csmadhu/gob"><img src="https://goreportcard.com/badge/github.com/csmadhu/gob"/></a>
 	<a href="https://pkg.go.dev/github.com/csmadhu/gob?tab=doc"><img src="https://godoc.org/github.com/csmadhu/gob?status.svg"/></a>
