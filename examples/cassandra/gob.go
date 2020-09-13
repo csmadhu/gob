@@ -9,8 +9,8 @@ import (
 )
 
 func main() {
-	g, err := gob.New(gob.WithDBProvider(gob.DBProviderMySQL),
-		gob.WithDBConnStr("gob:fY5SGU=t@(localhost:3306)/gob"))
+	g, err := gob.New(gob.WithDBProvider(gob.DBProviderCassandra),
+		gob.WithDBConnStr("cassandra://localhost:9042/gob?consistency=quorum&compressor=snappy&tokenAware=true"))
 	if err != nil {
 		log.Fatalf("init gob; err: %v", err)
 	}

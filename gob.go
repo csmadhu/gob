@@ -2,26 +2,12 @@ package gob
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"log"
 	"sync"
 	"time"
 
 	"github.com/csmadhu/gob/utils"
-)
-
-// mysql password fY5SGU=t
-
-var (
-	// ErrConnClosed when Gob.Upsert is called after closing the connection
-	ErrConnClosed = errors.New("gob: conn closed;")
-
-	// ErrEmptyModel when Gob.Upsert is called with empty model
-	ErrEmptyModel = errors.New("gob: empty model;")
-
-	// ErrEmptykeys when Gob.Upsert is called with empty keys
-	ErrEmptykeys = errors.New("gob: empty keys;")
 )
 
 var (
@@ -48,9 +34,8 @@ type Gob struct {
 	dbMu sync.Mutex // mutex to synchornize connection handler
 }
 
-// New returns Gob instance customized with options
-func New(options ...Option) (*Gob, error) {
-	gob := &Gob{
+func defaultGob() *Gob {
+	return &Gob{
 		batchSize:    defaultBatchSize,
 		dbProvider:   defaultDBProvider,
 		connStr:      defaultConnStr,
@@ -59,6 +44,11 @@ func New(options ...Option) (*Gob, error) {
 		connIdleTime: defaultConnIdleTime,
 		connLifeTime: defaultconnLifeTime,
 	}
+}
+
+// New returns Gob instance customized with options
+func New(options ...Option) (*Gob, error) {
+	gob := defaultGob()
 
 	for _, option := range options {
 		if err := option(gob); err != nil {
@@ -87,6 +77,11 @@ func New(options ...Option) (*Gob, error) {
 		}
 	case DBProviderMySQL:
 		gob.db, err = newMySQL(args)
+		if err != nil {
+			return nil, err
+		}
+	case DBProviderCassandra:
+		gob.db, err = newCassandra(args)
 		if err != nil {
 			return nil, err
 		}
@@ -148,6 +143,11 @@ func (gob *Gob) Upsert(ctx context.Context, args UpsertArgs) error {
 	// zero rows
 	if len(args.Rows) == 0 {
 		return nil
+	}
+
+	// empty conflict action
+	if args.ConflictAction == "" {
+		return ErrEmptyConflictAction
 	}
 
 	var (

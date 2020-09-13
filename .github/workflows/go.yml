@@ -52,6 +52,20 @@ jobs:
           # Opens tcp port 3306 on the host and service container
           - 3306:3306
 
+      cassandra:
+        # Docker Hub image
+        image: cassandra:3.11.8
+        # Set health checks to wait until mysql has started
+        options: >-
+          --health-cmd "cqlsh -e 'describe keyspaces'"
+          --health-interval 30s
+          --health-timeout 10s
+          --health-retries 5
+
+        ports:
+          # Opens tcp port 3306 on the host and service container
+          - 9042:9042
+
     steps:
 
     - name: Set up Go 1.x

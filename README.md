@@ -73,7 +73,7 @@ All options are optional. Options not applicable to Database provider is ignored
 |-------------|-------------|-------|-------|
 | **WithBatchSize** | Transaction Batch Size | int | 10000 |
 | **WithDBProvider** | Database provider | gob.DBProvider | DBProviderPg |
-| **WithDBConnStr** | DB URL/DSN - depends on Database provider | string | postgres://postgres:postgres@localhost:5432/gob?pool_max_conns=1 |
+| **WithDBConnStr** | DB URL/DSN<ul><li>PostgreSQL <i>postgres://username:password@host:port/batabase</i><br>References<ul><li>https://pkg.go.dev/github.com/jackc/pgconn?tab=doc#ParseConfig</li><li>https://pkg.go.dev/github.com/jackc/pgx/v4?tab=doc#ParseConfig</li></ul><li>MySQL <i>username:password@(host:port)/database</i></li><li>Cassandra <i>cassandra://username:password@host1--host2--host3:port/keyspace?consistency=quorum&compressor=snappy&tokenAware=true</i><br>References<ul><li>https://godoc.org/github.com/gocql/gocql#Consistency</li><li>https://godoc.org/github.com/gocql/gocql#Compressor</li><li>https://godoc.org/github.com/gocql/gocql#PoolConfig</li><li>https://godoc.org/github.com/gocql/gocql#HostSelectionPolicy</li><li>https://godoc.org/github.com/gocql/gocql#TokenAwareHostPolicy</li></ul></li></ul>| string | postgres://postgres:postgres@localhost:5432/gob?pool_max_conns=1 |
 | **WithConnIdleTime**  | Maximum amount of time conn may be idle | time.Duration | 3 second |
 | **WithConnLifeTime**  | Maximum amount of time conn may be reused | time.Duration | 3 second |
 | **WithIdleConns** | Maximum number of connections idle in pool | int | 2 |
