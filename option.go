@@ -23,7 +23,7 @@ func WithBatchSize(size int) Option {
 func WithDBProvider(provider DBProvider) Option {
 	return func(gob *Gob) error {
 		if provider == "" {
-			return fmt.Errorf("gob: invalid dbProvider: %s", provider)
+			return ErrEmptyDBProvider
 		}
 
 		gob.setDBProvider(provider)
@@ -35,7 +35,7 @@ func WithDBProvider(provider DBProvider) Option {
 func WithDBConnStr(connStr string) Option {
 	return func(gob *Gob) error {
 		if connStr == "" {
-			return fmt.Errorf("gob: invalid connStr: %s", connStr)
+			return ErrEmptyConnStr
 		}
 		gob.setConnStr(connStr)
 		return nil

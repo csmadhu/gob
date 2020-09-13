@@ -20,7 +20,7 @@ func main() {
 	var rows []gob.Row
 	for i := 0; i < 10; i++ {
 		row := gob.NewRow()
-		row.Add("name", fmt.Sprintf("foo-%d", i))
+		row.Add("name", fmt.Sprintf("name-%d", i))
 		row.Add("age", 20)
 
 		rows = append(rows, row)

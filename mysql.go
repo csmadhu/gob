@@ -52,6 +52,7 @@ func (db *mysql) upsert(ctx context.Context, upsertArgs UpsertArgs) error {
 		if row.Len() == 0 {
 			continue // ignore empty row
 		}
+
 		sql, args := db.rowToSQL(row, upsertArgs)
 		if _, err := tx.ExecContext(ctx, sql, args...); err != nil {
 			if rollbackErr := tx.Rollback(); rollbackErr != nil {
@@ -94,7 +95,7 @@ func (db *mysql) rowToSQL(row Row, upsertArgs UpsertArgs) (sql string, args []in
 	case ConflictActionUpdate:
 		updateAction = fmt.Sprintf("ON DUPLICATE KEY UPDATE %s", strings.Join(updateClause, ","))
 		args = append(args, updateArgs...)
-	default:
+	case ConflictActionNothing:
 		ignoreAction = "IGNORE"
 	}
 

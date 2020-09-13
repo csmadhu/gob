@@ -76,6 +76,8 @@ const (
 	DBProviderPg DBProvider = "pg"
 	// DBProviderMySQL indicates relational database provided by MySQL
 	DBProviderMySQL DBProvider = "mysql"
+	// DBProviderCassandra indicates no-sql database provided by Cassandra
+	DBProviderCassandra DBProvider = "cassandra"
 )
 
 type connArgs struct {

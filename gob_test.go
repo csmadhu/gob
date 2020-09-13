@@ -90,6 +90,18 @@ func TestNewGob(t *testing.T) {
 		}
 	})
 
+	t.Run("cassandraProvider", func(t *testing.T) {
+		if _, err := New(WithDBProvider(DBProviderCassandra),
+			WithDBConnStr(testCassyConnString)); err != nil {
+			t.Fatalf("init gob; err: %v", err)
+		}
+
+		if _, err := New(WithDBProvider(DBProviderCassandra),
+			WithDBConnStr("invalid")); err == nil {
+			t.Fatalf("init gob; want err")
+		}
+	})
+
 	t.Run("closedGob", func(t *testing.T) {
 		gob, err := New()
 		if err != nil {
@@ -166,6 +178,23 @@ func TestGobUpsert(t *testing.T) {
 
 		if err := gob.Upsert(context.Background(), UpsertArgs{Model: "students"}); err != nil {
 			t.Fatalf("empty row err: %v", err)
+		}
+	})
+
+	t.Run("emptyConflictAction", func(t *testing.T) {
+		setupPgDB()
+		gob, err := New(WithBatchSize(10))
+		if err != nil {
+			t.Fatalf("init default gob; err: %v", err)
+		}
+
+		rows := testGenStudentRowsPg(1)
+		if err := gob.Upsert(context.Background(), UpsertArgs{
+			Model: "students",
+			Rows:  rows,
+			Keys:  []string{"name"},
+		}); err == nil {
+			t.Fatalf("expected error")
 		}
 	})
 
@@ -274,7 +303,7 @@ func testUpsertDB(t *testing.T, dbConn db, genFn func(int) []Row, verifyFn func(
 	t.Run("conflictActionUpdate", func(t *testing.T) {
 		rows := genFn(15)
 		if err := dbConn.upsert(context.Background(), UpsertArgs{
-			ConflictAction: ConflictActionNothing,
+			ConflictAction: ConflictActionUpdate,
 			Model:          "students",
 			keySet:         utils.NewStringSet("name"),
 			Keys:           []string{"name"},

@@ -55,6 +55,7 @@ func (db *pg) upsert(ctx context.Context, upsertArgs UpsertArgs) error {
 		if row.Len() == 0 {
 			continue // ignore empty row
 		}
+
 		sql, args := db.rowToSQL(row, upsertArgs)
 		if _, err := tx.Exec(ctx, sql, args...); err != nil {
 			if rollbackErr := tx.Rollback(ctx); rollbackErr != nil {
@@ -96,7 +97,7 @@ func (db *pg) rowToSQL(row Row, upsertArgs UpsertArgs) (sql string, args []inter
 	switch upsertArgs.ConflictAction {
 	case ConflictActionUpdate:
 		action = fmt.Sprintf("DO UPDATE SET %s", strings.Join(updateClause, ","))
-	default:
+	case ConflictActionNothing:
 		action = "DO NOTHING"
 	}
 
