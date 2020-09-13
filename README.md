@@ -109,7 +109,7 @@ All options are optional. Options not applicable to Database provider is ignored
 						</ul>
 				</li>
 				<li>MySQL <b>username:password@(host:port)/database</b></li>
-				<li>Cassandra <b><nobr>cassandra://username:password@host1--host2--host3:port/keyspace?consistency=quorum&compressor=snappy&tokenAware=true</nobr></b><br>
+				<li>Cassandra <b><nobr>cassandra://username:password@host1--host2--host3:port/keyspace&#63;consistency=quorum&compressor=snappy&tokenAware=true</nobr></b><br>
 					References
 						<ul>
 						<li>https://godoc.org/github.com/gocql/gocql#Consistency</li>
@@ -122,7 +122,7 @@ All options are optional. Options not applicable to Database provider is ignored
 			</ul>
 		</td>
 		<td>string</td>
-		<td>postgres://postgres:postgres@localhost:5432/gob?pool_max_conns=1</td>
+		<td><nobr>postgres://postgres:postgres@localhost:5432/gob&#63;pool_max_conns=1</nobr></td>
 		<td>
 			<ul>
 				<li>PostgreSQL</li>
