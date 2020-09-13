@@ -72,21 +72,16 @@ func New(options ...Option) (*Gob, error) {
 	switch gob.dbProvider {
 	case DBProviderPg:
 		gob.db, err = newPg(args)
-		if err != nil {
-			return nil, err
-		}
 	case DBProviderMySQL:
 		gob.db, err = newMySQL(args)
-		if err != nil {
-			return nil, err
-		}
 	case DBProviderCassandra:
 		gob.db, err = newCassandra(args)
-		if err != nil {
-			return nil, err
-		}
 	default:
 		return nil, fmt.Errorf("gob: invalid dbProvider: %s", gob.dbProvider)
+	}
+
+	if err != nil {
+		return nil, err
 	}
 
 	return gob, nil

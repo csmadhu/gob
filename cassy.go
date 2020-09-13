@@ -48,11 +48,9 @@ func parseCassyConnString(connString string) (*gocql.ClusterConfig, error) {
 	}
 
 	var (
-		u                        *url.URL
-		config                   *gocql.ClusterConfig
-		hosts                    []string
-		host, username, password string
-		err                      error
+		u      *url.URL
+		config *gocql.ClusterConfig
+		err    error
 	)
 
 	u, err = url.Parse(connString)
@@ -60,16 +58,7 @@ func parseCassyConnString(connString string) (*gocql.ClusterConfig, error) {
 		return nil, fmt.Errorf("parse connection string: %w", err)
 	}
 
-	// parse hosts
-	host = u.Hostname()
-	switch {
-	case host == "":
-		hosts = []string{"localhost"}
-	default:
-		hosts = strings.Split(host, "--")
-	}
-
-	config = gocql.NewCluster(hosts...)
+	config = gocql.NewCluster(cassyHosts(u)...)
 
 	// parse keyspace
 	config.Keyspace = strings.TrimLeft(u.Path, "/")
@@ -77,47 +66,98 @@ func parseCassyConnString(connString string) (*gocql.ClusterConfig, error) {
 		return nil, ErrEmptyKeyspace
 	}
 
-	// parse port
-	if p := u.Port(); p != "" {
-		port, err := strconv.Atoi(p)
-		if err != nil {
-			return nil, fmt.Errorf("parse port %s: %w", p, err)
-		}
-		config.Port = port
+	config.Port, err = cassyPort(u)
+	if err != nil {
+		return nil, err
 	}
 
-	// parse username password
-	username = u.User.Username()
-	password, _ = u.User.Password()
+	config.Authenticator = cassyAuth(u)
+
+	config.Consistency, err = cassyConsistency(u.Query().Get("consistency"))
+	if err != nil {
+		return nil, err
+	}
+
+	config.Compressor, err = cassyCompressor(u.Query().Get("compressor"))
+	if err != nil {
+		return nil, err
+	}
+
+	config.PoolConfig.HostSelectionPolicy = cassyHostSelectionPolicy(u.Query().Get("tokenAware"))
+
+	return config, nil
+}
+
+// parse hosts
+func cassyHosts(u *url.URL) (hosts []string) {
+	host := u.Hostname()
+	switch {
+	case host == "":
+		hosts = []string{"localhost"}
+	default:
+		hosts = strings.Split(host, "--")
+	}
+
+	return hosts
+}
+
+// parse port
+func cassyPort(u *url.URL) (port int, err error) {
+	if p := u.Port(); p != "" {
+		port, err = strconv.Atoi(p)
+		if err != nil {
+			return 0, fmt.Errorf("parse port %s: %w", p, err)
+		}
+	}
+
+	return port, nil
+}
+
+// parse username password
+func cassyAuth(u *url.URL) gocql.Authenticator {
+	username := u.User.Username()
+	password, _ := u.User.Password()
 	if username != "" {
-		config.Authenticator = gocql.PasswordAuthenticator{
+		return gocql.PasswordAuthenticator{
 			Username: username,
 			Password: password,
 		}
 	}
 
-	for setting, values := range u.Query() {
-		switch setting {
-		case "consistency":
-			consistency, err := gocql.ParseConsistencyWrapper(values[0])
-			if err != nil {
-				return nil, fmt.Errorf("parse consistency %s: %w", values[0], err)
-			}
-			config.Consistency = consistency
-		case "compressor":
-			if strings.ToLower(values[0]) != cassyCompression {
-				return nil, fmt.Errorf("invalid compression: %s; valid compression: %s", values[0], cassyCompression)
-			}
-			config.Compressor = gocql.SnappyCompressor{}
-		case "tokenAware":
-			if strings.ToLower(values[0]) != "true" {
-				continue
-			}
-			config.PoolConfig.HostSelectionPolicy = gocql.TokenAwareHostPolicy(gocql.RoundRobinHostPolicy())
-		}
+	return nil
+}
+
+func cassyConsistency(value string) (gocql.Consistency, error) {
+	if value == "" {
+		return gocql.Quorum, nil
 	}
 
-	return config, nil
+	consistency, err := gocql.ParseConsistencyWrapper(value)
+	if err != nil {
+		return gocql.Quorum, fmt.Errorf("parse consistency %s: %w", value, err)
+	}
+
+	return consistency, nil
+}
+
+func cassyCompressor(value string) (gocql.Compressor, error) {
+	if value == "" {
+		return nil, nil
+	}
+
+	if strings.ToLower(value) != cassyCompression {
+		return nil, fmt.Errorf("invalid compression: %s; valid compression: %s", value, cassyCompression)
+	}
+
+	return gocql.SnappyCompressor{}, nil
+}
+
+func cassyHostSelectionPolicy(value string) gocql.HostSelectionPolicy {
+	if strings.ToLower(value) != "true" {
+		return gocql.RoundRobinHostPolicy()
+	}
+
+	return gocql.TokenAwareHostPolicy(gocql.RoundRobinHostPolicy())
 }
 
 func (db *cassy) upsert(ctx context.Context, upsertArgs UpsertArgs) error {
