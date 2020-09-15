@@ -7,19 +7,17 @@ Bulk upserts to PostgreSQL, MySQL, Cassandra
 	<a href="https://conventionalcommits.org"><img src="https://img.shields.io/badge/Conventional%20Commits-1.0.0-yellow.svg"/></a>
 	<a href="/.github/workflows/go.yml"><img src="https://github.com/csmadhu/gob/workflows/Go/badge.svg"/></a>
 	<a href="https://gitmoji.carloscuesta.me"><img src="https://img.shields.io/badge/gitmoji-%20😜%20😍-FFDD67.svg?style=flat-square" alt="Gitmoji"></a>
+	![Supported Go Versions](https://img.shields.io/badge/Go-1.15+-lightgrey.svg)
+        [![GitHub Release](https://img.shields.io/github/release/csmadhu/gob.svg)](https://github.com/csmadhu/gob/releases)
 	<a href="/LICENSE"><img src="https://img.shields.io/badge/license-GPL%20(%3E%3D%202)-blue" alt="license"/></a>
 </p>
 
 ---------------------------------------
-  * [Requirements](#requirements)
   * [Installation](#installation)
   * [Usage](#usage)
   * [Options](#options)
   * [Examples](#examples)
 ---------------------------------------
-
-## Requirements
-* GO 1.15 and above
 
 ## Installation
 ```bash
