@@ -1,14 +1,14 @@
 # gob
 Bulk upserts to PostgreSQL, MySQL, Cassandra
 
-[![Go Report Card](https://goreportcard.com/report/github.com/csmadhu/gob)](https://goreportcard.com/badge/github.com/csmadhu/gob)
+[![Go Report Card](https://goreportcard.com/badge/github.com/csmadhu/gob)](https://goreportcard.com/report/github.com/csmadhu/gob)
 [![GoDoc](https://godoc.org/github.com/csmadhu/gob?status.svg)](https://pkg.go.dev/github.com/csmadhu/gob?tab=doc)
-[![Conventional Commit](https://conventionalcommits.org)](https://img.shields.io/badge/Conventional%20Commits-1.0.0-yellow.svg)
-[![Gitmoji](https://gitmoji.carloscuesta.me)](https://img.shields.io/badge/gitmoji-%20😜%20😍-FFDD67.svg?style=flat-square)
-[![Go](/.github/workflows/go.yml)](https://github.com/csmadhu/gob/workflows/Go/badge.svg)
+[![Conventional Commit](https://img.shields.io/badge/Conventional%20Commits-1.0.0-yellow.svg)](https://conventionalcommits.org)
+[![Gitmoji](https://img.shields.io/badge/gitmoji-%20😜%20😍-FFDD67.svg?style=flat-square)](https://gitmoji.carloscuesta.me)
+[![Go](https://github.com/csmadhu/gob/workflows/Go/badge.svg)](https://github.com/csmadhu/gob/actions)
 ![Supported Go Versions](https://img.shields.io/badge/Go-1.15+-lightgrey.svg)
 [![GitHub Release](https://img.shields.io/github/release/csmadhu/gob.svg)](https://github.com/csmadhu/gob/releases)
-[![License](/LICENSE)](https://img.shields.io/badge/license-GPL%20(%3E%3D%202)-blue)
+[![License](https://img.shields.io/badge/license-GPL%20(%3E%3D%202)-blue)](https://github.com/csmadhu/gob/blob/master/LICENSE)
 
 ---------------------------------------
   * [Installation](#installation)
